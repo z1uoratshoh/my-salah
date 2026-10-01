@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101713"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="My Salah"><link rel="apple-touch-icon" href="icons/icon-192.png"><link rel="manifest" href="manifest.json"><title>My Salah — 30 Days</title>
+<style>
+:root{color-scheme:dark;--bg:#0c120f;--panel:#151f19;--panel2:#1b2921;--line:#2b3b31;--text:#f0f5f1;--muted:#9eafa3;--green:#80d6a1;--gold:#d7bd79;--red:#e49b91}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -20%,#20372a 0%,var(--bg) 55%);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--text);min-height:100vh;padding:env(safe-area-inset-top) 16px env(safe-area-inset-bottom)}
+.app{max-width:520px;margin:0 auto;padding:22px 0 34px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}.brand{font-weight:800;letter-spacing:.3px;font-size:19px}.brand span{color:var(--green)}.pill{font-size:12px;color:var(--gold);border:1px solid #665a37;border-radius:99px;padding:6px 10px}
+.hero{background:linear-gradient(135deg,#1c3024,#17221b);border:1px solid #304638;border-radius:24px;padding:20px;margin-bottom:15px;box-shadow:0 15px 40px #0003}.eyebrow{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:1.2px}.hero h1{font-size:28px;margin:5px 0 3px}.sub{color:var(--muted);font-size:13px}.progressrow{display:flex;justify-content:space-between;margin:19px 0 9px;font-size:13px}.track{height:9px;background:#304238;border-radius:20px;overflow:hidden}.fill{height:100%;width:0;background:linear-gradient(90deg,#66bd88,#b1e4bd);border-radius:20px;transition:width .25s}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:14px 0}.stat{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:13px 10px}.stat strong{display:block;font-size:21px}.stat small{color:var(--muted);font-size:11px}
+.sectionhead{display:flex;justify-content:space-between;align-items:center;margin:22px 2px 10px}.sectionhead h2{font-size:16px;margin:0}.hint{font-size:11px;color:var(--muted)}.days{display:flex;gap:8px;overflow-x:auto;padding:2px 1px 12px;scrollbar-width:thin}.day{flex:0 0 54px;border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:9px 4px;color:var(--muted);text-align:center;font-size:12px;cursor:pointer}.day b{display:block;color:var(--text);font-size:16px;margin-bottom:3px}.day.active{background:#254331;border-color:#6bb889;color:#d8f4e1}.day.done b:after{content:' ✓';color:var(--green);font-size:11px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:21px;padding:16px}.prayer{display:flex;align-items:center;gap:12px;padding:12px 2px;border-bottom:1px solid #26352b}.prayer:last-child{border:0}.symbol{width:39px;height:39px;display:grid;place-items:center;border-radius:13px;background:#223329;color:var(--gold);font-size:18px}.pname{font-weight:650}.arabic{display:block;color:var(--muted);font-size:11px;margin-top:2px}.check{margin-left:auto;width:27px;height:27px;accent-color:#78d69b;cursor:pointer}
+.note{color:var(--muted);font-size:11px;line-height:1.5;margin:12px 3px}.actions{display:flex;gap:9px;margin-top:16px}.btn{flex:1;border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:12px;border-radius:13px;font-weight:600;cursor:pointer}.btn.primary{background:#294b36;border-color:#477a57;color:#e8fff0}.btn.danger{color:var(--red)}.footer{text-align:center;color:#718278;font-size:11px;margin-top:22px}
+</style></head><body><main class="app">
+<header class="top"><div class="brand">☾ <span>MY SALAH</span></div><div class="pill">30 ДНЕЙ</div></header>
+<section class="hero"><div class="eyebrow">Твой ежедневный прогресс</div><h1 id="dayTitle">День 1</h1><div class="sub" id="dateLabel">Отмечай намазы по мере выполнения</div><div class="progressrow"><span>Прогресс выбранного дня</span><b id="dayCount">0 из 5</b></div><div class="track"><div class="fill" id="dayFill"></div></div></section>
+<section class="stats"><div class="stat"><strong id="total">0/150</strong><small>Намазов отмечено</small></div><div class="stat"><strong id="percent">0%</strong><small>Общий прогресс</small></div><div class="stat"><strong id="daysDone">0/30</strong><small>Полных дней</small></div></section>
+<div class="sectionhead"><h2>30 дней</h2><span class="hint">Выбери день</span></div><div class="days" id="days"></div>
+<div class="sectionhead"><h2 id="prayerHeading">Намазы · День 1</h2><span class="hint">Поставь галочку ✓</span></div>
+<section class="card" id="prayers"></section>
+<p class="note">Отметки сохраняются автоматически на этом устройстве. Это личный трекер привычки, а не расписание времени намазов.</p>
+<div class="actions"><button class="btn" id="clearDay">Снять отметки дня</button><button class="btn danger" id="reset">Сбросить всё</button></div>
+<div class="footer">Пусть каждый день будет наполнен баракатом 🤍</div></main>
+<script>
+const names=[['Фаджр','الفجر','☀'],['Зухр','الظهر','◉'],['Аср','العصر','◒'],['Магриб','المغرب','☾'],['Иша','العشاء','✦']];
+const KEY='my-salah-30days-v1';let data;try{data=JSON.parse(localStorage.getItem(KEY))||{};}catch{data={}}let selected=1;
+function save(){localStorage.setItem(KEY,JSON.stringify(data));render()}
+function count(day){return names.reduce((n,_,i)=>n+(data[day+'-'+i]?1:0),0)}
+function render(){const days=document.getElementById('days');days.innerHTML='';for(let d=1;d<=30;d++){let el=document.createElement('button');el.className='day'+(d===selected?' active':'')+(count(d)===5?' done':'');el.innerHTML=`<b>${d}</b>день`;el.onclick=()=>{selected=d;render()};days.append(el)}
+const c=count(selected);document.getElementById('dayTitle').textContent='День '+selected;document.getElementById('prayerHeading').textContent='Намазы · День '+selected;document.getElementById('dayCount').textContent=c+' из 5';document.getElementById('dayFill').style.width=(c/5*100)+'%';
+let total=0,full=0;for(let d=1;d<=30;d++){let n=count(d);total+=n;if(n===5)full++}document.getElementById('total').textContent=total+'/150';document.getElementById('percent').textContent=Math.round(total/150*100)+'%';document.getElementById('daysDone').textContent=full+'/30';
+const wrap=document.getElementById('prayers');wrap.innerHTML='';names.forEach(([name,arabic,symbol],i)=>{let row=document.createElement('label');row.className='prayer';let checked=!!data[selected+'-'+i];row.innerHTML=`<span class="symbol">${symbol}</span><span><span class="pname">${name}</span><span class="arabic">${arabic}</span></span><input class="check" type="checkbox" ${checked?'checked':''} aria-label="${name} выполнен">`;row.querySelector('input').onchange=e=>{if(e.target.checked)data[selected+'-'+i]=true;else delete data[selected+'-'+i];save()};wrap.append(row)})}
+document.getElementById('clearDay').onclick=()=>{if(confirm('Снять все отметки за день '+selected+'?')){names.forEach((_,i)=>delete data[selected+'-'+i]);save()}};
+document.getElementById('reset').onclick=()=>{if(confirm('Удалить все отметки за 30 дней? Это действие нельзя отменить.')){data={};save()}};
+render();
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err => console.warn('SW registration:', err));
+  });
+}
+</script></body></html>

@@ -1,0 +1,27 @@
+{
+  "id": "./",
+  "name": "My Salah — 30 Days",
+  "short_name": "My Salah",
+  "description": "Личный трекер пяти ежедневных намазов на 30 дней.",
+  "lang": "ru",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0c120f",
+  "theme_color": "#101713",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
