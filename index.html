@@ -12,20 +12,73 @@
 .sectionhead{display:flex;justify-content:space-between;align-items:center;margin:22px 2px 10px}.sectionhead h2{font-size:16px;margin:0}.hint{font-size:11px;color:var(--muted)}.days{display:flex;gap:8px;overflow-x:auto;padding:2px 1px 12px;scrollbar-width:thin}.day{flex:0 0 54px;border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:9px 4px;color:var(--muted);text-align:center;font-size:12px;cursor:pointer}.day b{display:block;color:var(--text);font-size:16px;margin-bottom:3px}.day.active{background:#254331;border-color:#6bb889;color:#d8f4e1}.day.done b:after{content:' ✓';color:var(--green);font-size:11px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:21px;padding:16px}.prayer{display:flex;align-items:center;gap:12px;padding:12px 2px;border-bottom:1px solid #26352b}.prayer:last-child{border:0}.symbol{width:39px;height:39px;display:grid;place-items:center;border-radius:13px;background:#223329;color:var(--gold);font-size:18px}.pname{font-weight:650}.arabic{display:block;color:var(--muted);font-size:11px;margin-top:2px}.check{margin-left:auto;width:27px;height:27px;accent-color:#78d69b;cursor:pointer}
 .note{color:var(--muted);font-size:11px;line-height:1.5;margin:12px 3px}.actions{display:flex;gap:9px;margin-top:16px}.btn{flex:1;border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:12px;border-radius:13px;font-weight:600;cursor:pointer}.btn.primary{background:#294b36;border-color:#477a57;color:#e8fff0}.btn.danger{color:var(--red)}.footer{text-align:center;color:#718278;font-size:11px;margin-top:22px}
-</style></head><body><main class="app">
+</style>
+</head>
+<body><main class="app">
 <header class="top"><div class="brand">☾ <span>MY SALAH</span></div><div class="pill">30 ДНЕЙ</div></header>
 <section class="hero"><div class="eyebrow">Твой ежедневный прогресс</div><h1 id="dayTitle">День 1</h1><div class="sub" id="dateLabel">Отмечай намазы по мере выполнения</div><div class="progressrow"><span>Прогресс выбранного дня</span><b id="dayCount">0 из 5</b></div><div class="track"><div class="fill" id="dayFill"></div></div></section>
 <section class="stats"><div class="stat"><strong id="total">0/150</strong><small>Намазов отмечено</small></div><div class="stat"><strong id="percent">0%</strong><small>Общий прогресс</small></div><div class="stat"><strong id="daysDone">0/30</strong><small>Полных дней</small></div></section>
 <div class="sectionhead"><h2>30 дней</h2><span class="hint">Выбери день</span></div><div class="days" id="days"></div>
 <div class="sectionhead"><h2 id="prayerHeading">Намазы · День 1</h2><span class="hint">Поставь галочку ✓</span></div>
 <section class="card" id="prayers"></section>
-<p class="note">Отметки сохраняются автоматически на этом устройстве. Это личный трекер привычки, а не расписание времени намазов.</p>
+<p class="note" id="sync"></p>
+<p class="note">Отметки сохраняются автоматически: на телефоне и в облаке (MockAPI). Это личный трекер привычки, а не расписание времени намазов.</p>
 <div class="actions"><button class="btn" id="clearDay">Снять отметки дня</button><button class="btn danger" id="reset">Сбросить всё</button></div>
 <div class="footer">Пусть каждый день будет наполнен баракатом 🤍</div></main>
 <script>
 const names=[['Фаджр','الفجر','☀'],['Зухр','الظهر','◉'],['Аср','العصر','◒'],['Магриб','المغرب','☾'],['Иша','العشاء','✦']];
-const KEY='my-salah-30days-v1';let data;try{data=JSON.parse(localStorage.getItem(KEY))||{};}catch{data={}}let selected=1;
-function save(){localStorage.setItem(KEY,JSON.stringify(data));render()}
+// ВСТАВЬ СВОЙ АДРЕС из MockAPI (Base URL + /tracker), например: https://64abc123.mockapi.io/api/v1/tracker
+const API='https://69e0de2529c070e6597c2d94.mockapi.io/traker';
+const ENABLED=!API.includes('PASTE_YOUR_ID');
+const H={'Content-Type':'application/json'};
+const KEY='my-salah-30days-v1',META='my-salah-meta-v1';
+let data;try{data=JSON.parse(localStorage.getItem(KEY))||{};}catch{data={}}
+let meta;try{meta=JSON.parse(localStorage.getItem(META))||{};}catch{meta={}}
+meta.updatedAt=meta.updatedAt||0;
+let selected=1,timer;
+function saveMeta(){try{localStorage.setItem(META,JSON.stringify(meta))}catch{}}
+function setStatus(t){const el=document.getElementById('sync');if(el)el.textContent=t}
+function save(){meta.updatedAt=Date.now();localStorage.setItem(KEY,JSON.stringify(data));saveMeta();render();clearTimeout(timer);timer=setTimeout(push,600)}
+async function push(){
+  if(!ENABLED)return;
+  setStatus('Сохраняю в облако…');
+  const body=JSON.stringify({data:JSON.stringify({checks:data,updatedAt:meta.updatedAt})});
+  try{
+    if(meta.id){
+      const r=await fetch(API+'/'+meta.id,{method:'PUT',headers:H,body});
+      if(r.status===404)meta.id=null;else if(!r.ok)throw 0;
+    }
+    if(!meta.id){
+      const r=await fetch(API,{method:'POST',headers:H,body});
+      if(!r.ok)throw 0;
+      meta.id=(await r.json()).id;
+    }
+    saveMeta();setStatus('☁ Синхронизировано');
+  }catch{setStatus('Нет связи: отметки сохранены на телефоне, отправлю позже')}
+}
+async function pull(){
+  if(!ENABLED)return;
+  setStatus('Загружаю из облака…');
+  try{
+    let rec=null;
+    if(meta.id){const r=await fetch(API+'/'+meta.id);if(r.ok)rec=await r.json()}
+    if(!rec){
+      const r=await fetch(API);
+      if(r.ok){const list=await r.json();if(Array.isArray(list)&&list.length)rec=list[0]}
+      else if(r.status!==404)throw 0;
+    }
+    if(rec){
+      meta.id=rec.id;
+      let remote={};try{remote=JSON.parse(rec.data)||{}}catch{}
+      if((remote.updatedAt||0)>meta.updatedAt){
+        data=remote.checks||{};meta.updatedAt=remote.updatedAt;
+        localStorage.setItem(KEY,JSON.stringify(data));saveMeta();render();
+        setStatus('☁ Синхронизировано');return;
+      }
+    }
+    await push();
+  }catch{setStatus('Нет связи: работаю с данными на телефоне')}
+}
 function count(day){return names.reduce((n,_,i)=>n+(data[day+'-'+i]?1:0),0)}
 function render(){const days=document.getElementById('days');days.innerHTML='';for(let d=1;d<=30;d++){let el=document.createElement('button');el.className='day'+(d===selected?' active':'')+(count(d)===5?' done':'');el.innerHTML=`<b>${d}</b>день`;el.onclick=()=>{selected=d;render()};days.append(el)}
 const c=count(selected);document.getElementById('dayTitle').textContent='День '+selected;document.getElementById('prayerHeading').textContent='Намазы · День '+selected;document.getElementById('dayCount').textContent=c+' из 5';document.getElementById('dayFill').style.width=(c/5*100)+'%';
@@ -34,6 +87,10 @@ const wrap=document.getElementById('prayers');wrap.innerHTML='';names.forEach(([
 document.getElementById('clearDay').onclick=()=>{if(confirm('Снять все отметки за день '+selected+'?')){names.forEach((_,i)=>delete data[selected+'-'+i]);save()}};
 document.getElementById('reset').onclick=()=>{if(confirm('Удалить все отметки за 30 дней? Это действие нельзя отменить.')){data={};save()}};
 render();
+if(!ENABLED)setStatus('Облако не подключено: данные только на этом устройстве');
+pull();
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')pull()});
+window.addEventListener('online',push);
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js').catch(err => console.warn('SW registration:', err));
