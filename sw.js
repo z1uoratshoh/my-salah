@@ -1,4 +1,4 @@
-const CACHE_NAME = 'my-salah-v1';
+const CACHE_NAME = 'my-salah-v2';
 const APP_FILES = [
   './',
   './index.html',
@@ -23,6 +23,7 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
+  if (new URL(event.request.url).origin !== self.location.origin) return; // запросы к MockAPI идут напрямую
   event.respondWith(
     caches.match(event.request).then(cached => {
       if (cached) return cached;
